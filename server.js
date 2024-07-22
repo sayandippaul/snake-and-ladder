@@ -1,7 +1,7 @@
 // const express = require('express');
 // const path = require('path');
 // const app = express();
-// const port = 3000;
+const port = process.env.PORT || 3000;
 // const http = require('http');
 // const server = http.createServer(app);
 
@@ -188,6 +188,6 @@ usp.on("connection", async function (socket) {
 
 
   });
-server.listen(3000, () => {
+server.listen(port, () => {
   console.log('listening on *:3000');
 });
