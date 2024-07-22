@@ -60,7 +60,7 @@ const mongoose = require('mongoose');
 // Middleware
 app.use(bodyParser.json());
 // Connect to MongoDB
-mongoose.connect('mongodb+srv://bidishasarkar979:S3cDZM7mrDJCNMPp@bidishaproject.mongodb.net/ludo?retryWrites=true&w=majority', {
+mongoose.connect('mongodb+srv://bidisha:0420@bidishaproject.rgyjmyb.mongodb.net/?retryWrites=true&w=majority&appName=bidishaproject', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
