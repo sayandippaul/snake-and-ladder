@@ -60,7 +60,7 @@ const mongoose = require('mongoose');
 // Middleware
 app.use(bodyParser.json());
 // Connect to MongoDB
-mongoose.connect('mongodb://localhost:27017/ludo', {
+mongoose.connect('mongodb+srv://bidishasarkar979:<S3cDZM7mrDJCNMPp>@bidishaproject.rgyjmyb.mongodb.net', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
