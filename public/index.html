@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script type="text/javascript" src="socket.io/socket.io.js"></script>
+
+    <style>
+        body{
+            background-image: url("frontbg.png");
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+    </style>
+</head>
+
+<body>
+    <input type="text" id="name" style="height: 50px;width: 200px;margin-top: 100px;margin-left: 50px;background-color: black;color: white;border:2px solid aqua;border-radius: 10px;font-size: 20px;" placeholder="Enter Your Name">
+   <br>
+    <div style="color: white;">
+        <br>
+        <label style="margin-left: 50px;font-size: 15px;font-weight: bolder;" for="cars">Choose your colour</label>
+        <br>
+
+<select style="height: 50px;width: 200px;margin-left: 50px;background-color: black;color: white;" id="ghuti">
+    <option selected  value="" disabled>No Colour Choosen</option>
+    <option id="optyellow" value="yellow">yellow</option>
+  <option id="optred" value="red">red</option>
+  <option id="optgreen" value="green">green</option>
+  <option id="optblue" value="blue">blue</option>
+</select>
+<br>
+<button id="savebutton" onclick="saveuser()" style="height: 30px;width: 200px;margin-top: 10px;margin-left: 50px;background-color: rgb(127, 195, 251);color: black;border-radius: 10px;">Save Details</button>
+   
+<br>
+<br>
+<br>
+       <div style="margin-left: 50px;height: 100px;width: 200px;background-color: black;border-radius: 10px;font-size: 15px;color: white;border: 2px solid white;" id="showplayerdetails">
+
+<br>
+        
+       </div>
+    </div>
+</body>
+</html>
+    <script>
+        var namefirst="";
+        if(localStorage.getItem("ludoname")==undefined){
+            
+        localStorage.setItem("ludoname",namefirst);
+        }
+        var socket=io('/user',{
+ 
+});
+
+         var url="http://localhost:3000";
+         function saveuser(){
+            var name=document.getElementById("name").value;
+            var ghuti=document.getElementById("ghuti").value;
+            if(ghuti=="" || name==""){
+                alert("Enter Details ");
+                return;
+            }
+            var ds={};
+            console.log(totalplayers);
+            if(totalplayers==0){
+              ds = { name:name,
+            ghuti:ghuti,
+            ladder:0,
+            snake:0,
+            dan:1,
+            position:0,
+            "approved":0
+ };
+            }
+            else{
+              ds = { name:name,
+            ghuti:ghuti,
+            ladder:0,
+            snake:0,
+            position:0,
+            dan:0,
+            "approved":0
+ };
+            }
+    
+
+ fetch(url+"/saveplayers", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Origin": "*",
+      },
+      body: JSON.stringify(ds),
+    })
+
+      .then((res) => res.json())
+      .then((data) => {
+        if(data!=null){
+ localStorage.setItem("ludoname",name);
+
+        alert("You Have entered This game successfully");
+
+        socket.emit("userentered",{name:name,ghuti:ghuti} );
+        }
+
+      })
+      .catch((err) => console.log(err));
+
+}
+
+var totalplayers=1;
+function getuser(){
+            
+ fetch(url+"/getplayers", {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Origin": "*",
+      },
+    })
+
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data);
+
+        if(data.length>=2){
+
+            
+            alert("game has started");
+            if(localStorage.getItem("ludoname")==""){
+
+            }
+            else{
+                window.location.href="/gamepage";
+            }
+            document.getElementById("savebutton").disabled=true;
+         
+        }
+        var a="";
+        totalplayers=1;
+        if(data.length==0){
+          totalplayers=0;
+             a="No User Here";
+        }
+        for(var i=0;i<data.length;i++){
+            document.getElementById("opt"+data[i].ghuti).disabled=true;
+            a=a+`<strong>
+                <br>
+            Other Player:
+        </strong>
+        <span id="showplayer">
+      `+data[i].name+`
+        </span>
+        <br>
+        
+        <strong>
+
+            Ghuti 
+        </strong>
+
+        <span id="showghuti">
+      `+data[i].ghuti+`
+            
+        </span>
+`
+}
+document.getElementById("showplayerdetails").innerHTML=a;
+
+
+      })
+      .catch((err) => console.log(err));
+
+
+
+
+}
+getuser();
+
+
+socket.on('showusereneterd', (data) => {
+    console.log(data);
+   
+alert(data.name+" entered with "+data.ghuti+" colour");
+getuser();
+totalplayers=1;
+});
+
+
+        
+        </script>

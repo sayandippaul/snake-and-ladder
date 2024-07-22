@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake & Ladder</title>
+    <script type="text/javascript" src="socket.io/socket.io.js"></script>
+
+</head>
+<style>
+    body {
+        background-color: red;
+    }
+
+    .t {
+        background-image: url(bg.jpg);
+        height: 40vh;
+        width: 100%;
+        background-repeat: no-repeat;
+        background-size: 100% 100%;
+        /* float: right; */
+    }
+
+    .full {
+        display: grid;
+        grid-template-columns: 1fr 5fr;
+    }
+
+    .ghutiandroll {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .col {
+        width: auto;
+        height: 4vw;
+        text-align: center;
+        font-weight: bold;
+        color: black;
+    }
+
+    .p1,
+    .p2 {
+        height: 27%;
+        background: yellow;
+        border-radius: 20%;
+        padding: 15px;
+        margin: 10px;
+        border: 2px solid black;
+        background: linear-gradient(130deg, yellow, orange);
+        text-align: center;
+        font-weight: bolder;
+    }
+
+    .details th {
+
+
+        border: 2px solid black;
+    }
+
+    .details {
+        width: 100%;
+        /* margin-top: 20%;
+         */
+        /* position: absolute; */
+        /* align-items: flex-end;
+bottom: 0; */
+        /* margin-bottom: -80px; */
+    }
+
+    .btns {
+        height: 50px;
+        width: 90%;
+        color: aliceblue;
+        border-radius: 10%;
+        margin: 10px;
+        background: linear-gradient(130deg, rgb(91, 172, 216), rgb(75, 78, 216));
+    }
+
+    .dice {
+        height: 50px;
+        width: 50px;
+        border-radius: 10%;
+        margin: auto;
+        margin-top: 25px;
+        background: linear-gradient(130deg, rgb(91, 172, 216), rgb(75, 78, 216));
+
+
+    }
+
+    .ghuti {
+        height: 70px;
+        width: 70px;
+        border-radius: 10%;
+        margin: auto;
+        background: linear-gradient(130deg, rgb(91, 172, 216), rgb(75, 78, 216));
+    }
+</style>
+
+<body>
+    <div class="full">
+        <div class="left">
+
+
+            <button class="btns">
+                End Game
+            </button>
+            <div id="showplayers">
+
+
+
+
+
+            </div>
+            <div class="ghutiandroll">
+                <img class="ghuti" id="home1"></img>
+                <img class="ghuti" id="home2"></img>
+            </div>
+            <button id="bidi"  onclick="goto()"><div class="dice" >dice <span id="showdicevalue">roll here</span></div></button>
+
+            <!-- <button class="btns">
+                
+            </button> -->
+        </div>
+        <div class="right">
+            <table class="t">
+                <tbody id="content"></tbody>
+            </table>
+        </div>
+
+    </div>
+    <audio id="myAudio">
+        <source  type="audio/ogg">
+        <source  type="audio/mpeg">
+        Your browser does not support the audio element.
+      </audio>
+</body>
+
+</html>
+<script>
+
+
+    // var socket=io();
+    let c = (Math.floor(Math.random() * 10000)) + 1;
+    var playerid = "";
+    // alert(c);
+    var socket = io('/user', {
+        auth: {
+            token: c,
+        }
+    });
+
+
+    function printboard() {
+        var row = "";
+        var num = 100;
+        for (var r = 1; r <= 10; r++) {
+            row = row + `<tr>`;
+            if (num == 90 || num == 70 || num == 50 || num == 30 || num == 10) {
+                var newnum = num - 9;
+                for (var c = 1; c <= 10; c++) {
+                    var s = (newnum++)
+                    row = row +
+                        `<td class="col" id="` + s + `">
+                    </td>`;
+                    num--;
+                }
+            } else {
+                for (var c = 1; c <= 10; c++) {
+                    var a = num--;
+                    row = row +
+                        `<td class="col" id="` + a + `">
+                    </td>`;
+                }
+            }
+
+            row = row + `</tr>`;
+        }
+        document.getElementById("content").innerHTML = row;
+
+
+    }
+
+
+    printboard();
+
+
+    var currentposition; 
+
+    //document.getElementById(currentposition).style.backgroundColor = "black";
+
+    function goto() {
+        socket.emit("playsound", { sound:"dice"});
+
+        console.log(playerid);
+        currentposition = players[playerid - 1].position;
+
+        var dicevalue = (Math.floor(Math.random() * 6)) + 1;
+        console.log(players)
+        console.log(myself)
+
+        document.getElementById("showdicevalue").innerHTML = dicevalue;
+
+
+
+
+
+
+        if (myself.approved == 1) {
+
+            document.getElementById("home" + playerid).style.display = "none";
+
+            var newp = currentposition + dicevalue;
+            if (newp > 100) {
+                newp = currentposition;
+                // play buzzer sound
+                socket.emit("playsound", { sound:"oh no"});
+
+            }
+            if (newp == 100) {
+                alert("winner ");
+                // finish game
+        socket.emit("gameended", { players: players, dicevalue: dicevalue,});
+        window.location.href="/";
+        return;
+
+                // sound of winning for the winner
+                // sound of losing for the loser
+
+            }
+
+            for (var i = 0; i < rules[0].start.length; i++) {
+                console.log(rules[0].start[i])
+                if (newp == rules[0].start[i]) {
+                    newp = rules[0].dest[i];
+                    // play good sound
+                    myself.ladder = myself.ladder + 1;
+                    socket.emit("playsound", { sound:"ladder"});
+
+                    
+                }
+            }
+            for (var i = 0; i < rules[1].start.length; i++) {
+
+                if (newp == rules[1].start[i]) {
+                    newp = rules[1].dest[i];
+                    // play bad sound
+                    myself.snake = myself.snake + 1;
+        socket.emit("playsound", { sound:"snake"});
+
+
+                }
+            }
+
+
+            showplayers(players);
+
+
+            // for (var i = currentposition; i <= newp; i++) {
+            //     document.getElementById(i).innerHTML = "";
+            //     document.getElementById(i).style.background = "";
+
+
+            //     setTimeout(() => {
+
+            //     }, 5000);
+            // }
+            if (currentposition != 0) {
+
+                document.getElementById(currentposition).style.background = "";
+            }
+
+            // document.getElementById(newp).style.backgroundColor = "black";
+            document.getElementById(newp).style.backgroundImage = "url('" + myself.ghuti + ".png')";
+            document.getElementById(newp).style.backgroundSize = "50% 50%";
+            document.getElementById(newp).style.backgroundRepeat = "no-repeat";
+
+
+            currentposition = newp;
+            players[playerid - 1].position = newp;
+            myself.position = newp;
+
+
+        }
+        else {
+            if (dicevalue == 1) {
+                // play sound
+                socket.emit("playsound", { sound:"beriyeche"});
+
+                document.getElementById("home" + playerid).style.display = "none";
+                currentposition = 1;
+                document.getElementById(currentposition).style.backgroundImage = "url('" + myself.ghuti + ".png')";
+                document.getElementById(currentposition).style.backgroundSize = "50% 50%";
+                document.getElementById(currentposition).style.backgroundRepeat = "no-repeat";
+
+                myself.approved = 1;
+                players[playerid - 1].approved = 1
+                players[playerid - 1].position = currentposition;
+                myself.position = currentposition;
+
+
+            }
+        }
+        if(dicevalue!=1){
+            document.getElementById("bidi").disabled=true;
+
+            for(var i=0; i<=1; i++){
+                
+                
+            if(players[i].dan == 0){
+                players[i].dan = 1;
+            }
+            else{
+                players[i].dan = 0;
+                
+
+            }
+
+        }
+        }
+
+        
+
+        console.log(players);
+        // getuser();
+        
+        socket.emit("dicedone", { players: players, dicevalue: dicevalue,});
+
+        
+
+
+
+    }
+    var url = "http://localhost:3000";
+    var players = [];
+
+    function getuser() {
+
+        fetch(url + "/getplayers", {
+            method: "GET",
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+                "Access-Control-Allow-Origin": "*",
+            },
+        })
+
+            .then((res) => res.json())
+            .then((data) => {
+                console.log(data.length);
+                if (data.length != 2) {
+
+                    alert("game not started");
+                    window.location.href = "/"
+                }
+                else {
+                    players = data;
+                    console.log(players)
+                    for (var i = 0; i < players.length; i++) {
+                        var ludoname = localStorage.getItem("ludoname");
+                        console.log(ludoname,players[i].name);
+                        if (players[i].name == ludoname) {
+                            myself = players[i];
+                            console.log(myself.dan)
+            if(myself.dan==1){
+                // alert("hit");
+                document.getElementById("bidi").disabled=false;
+
+
+            }
+            else{
+                document.getElementById("bidi").disabled=true;
+
+            }
+                            
+                            playerid = i + 1;
+                            console.log(playerid)
+                        }
+                    }
+                    showplayers(data);
+                }
+
+            })
+            .catch((err) => console.log(err));
+
+
+
+
+    }
+    getuser();
+
+    // let players=[
+    //     {
+    //         name:"sayandip",
+    //         ladder:0,
+    //         snake:0,
+    //         ghuti:"red",
+    //         "approved":0
+
+    //     },
+    //     {
+    //         name:"bidisha",
+    //         ladder:0,
+    //         snake:0,
+    //         ghuti:"blue",
+    //         "approved":0
+
+
+    //     }
+    // ]
+    var myself = [];
+    function showplayers(p) {
+        var players = p;
+        var a = "";
+        for (var i = 1; i <= players.length; i++) {
+            a = a + `            <div class="p` + i + `">
+                <div class="name" style="font-size: 20px; height: 40px;">`+ players[i - 1].name + `</div>
+                <hr>
+                <table class="details">
+                    <tbody>
+
+                        <tr>
+                            <th>
+                                Ladder
+                            </th>
+                            <th>
+                                Snake
+                            </th>
+                        </tr>
+                        <tr>
+
+                            <th>
+                                `+ players[i - 1].ladder + `
+                            </th>
+                            <th>
+                                `+ players[i - 1].snake + `
+                            </th>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+
+            `
+        }
+
+        document.getElementById("showplayers").innerHTML = a;
+        // if(myself.approved==0){
+        //     document.getElementById("home").src = myself.ghuti+".png";
+
+        // }
+
+        for (var i = 0; i < players.length; i++) {
+            var p = i + 1;
+            if (players[i].approved == 0) {
+
+                document.getElementById("home" + p).src = players[i].ghuti + ".png";
+            }
+
+            else {
+                document.getElementById("home" + p).style.visibility = "hidden";
+
+                document.getElementById(players[i].position).style.backgroundImage = "url('" + players[i].ghuti + ".png')";
+                document.getElementById(players[i].position).style.backgroundSize = "50% 50%";
+                document.getElementById(players[i].position).style.backgroundRepeat = "no-repeat";
+
+            }
+           
+        }
+        if(players[0].position==players[1].position){
+            var p=players[1].position;
+                document.getElementById(p).style.background = "url('" + players[0].ghuti + ".png') 10px 10px,url('" + players[1].ghuti + ".png')20px 20px";
+                document.getElementById(p).style.backgroundSize = "50% 50%";
+                document.getElementById(p).style.backgroundRepeat = "no-repeat";
+
+        }
+
+    }
+
+    let rules = [
+        {
+            type: "ladder",
+            start: [2, 6, 20, 52, 57, 71],
+            dest: [23, 45, 59, 72, 96, 92]
+
+        },
+        {
+            type: "snake",
+            start: [43, 50, 56, 73, 84, 87, 98],
+            dest: [17, 5, 8, 15, 58, 49, 40]
+
+
+        }
+    ]
+
+
+    socket.on('showposition', (data) => {
+        console.log("data");
+        console.log(players);
+
+        // alert(data.name+" entered with "+data.ghuti+" colour");
+        for (var i = 1; i <= 100; i++) {
+            document.getElementById(i).style.background = "";
+
+        }
+        document.getElementById("showdicevalue").innerHTML = data.dicevalue;
+        getuser();
+
+        showplayers(data.players);
+    });
+
+
+    socket.on('gameended', () => {
+        alert("Sorry !!You have Lost");
+        window.location.href="/";
+
+         });
+
+         socket.on('playsound', (data) => {
+            console.log("play sound");
+            console.log(data);
+         document.getElementById("myAudio").src=data.sound+".mp3"; 
+         document.getElementById("myAudio").play();
+
+
+        });
+
+
+  
+
+</script>
