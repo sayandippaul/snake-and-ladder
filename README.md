@@ -13,6 +13,11 @@ The Snake and Ladder Game is a classic board game adapted for the web, allowing 
 - Sound effects for different game events
 - Database integration to store and display game records
 - Security measures to protect player information
+  
+![Index Page](https://github.com/user-attachments/assets/4cc86985-25e6-4bd5-9020-a05ff701ee0c)
+![Game Page Image](https://github.com/user-attachments/assets/008bb018-b123-4ba4-a7db-145424e828eb)
+
+
 
 ## Technologies Used
 - HTML
